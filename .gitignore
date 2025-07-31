@@ -12,11 +12,22 @@
 .swiftpm/
 migrate_working_dir/
 
+# Cmake stuff
+src/CMakeFiles/
+src/shared/
+src/bin/
+src/x64/
+src/*.vcxproj*
+src/*.sln
+src/*.cmake
+CmakeCache.txt
+
 # IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
+
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
