@@ -9,6 +9,23 @@ add_library(avarex_llama SHARED
   "avarex_llama.c"
 )
 
+############## Start LLAMA.cpp settings ##############
+set(LLAMA_CPP_DIR llama_cpp)
+#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--build-id=none")
+#set(LLAMA_NATIVE OFF CACHE BOOL "llama: disable -march=native flag" FORCE)
+#set(LLAMA_VULKAN ON CACHE BOOL "llama: enable vulkan" FORCE)
+add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_CURRENT_BINARY_DIR}/shared)
+target_include_directories(
+  avarex_llama 
+  PRIVATE 
+  ${LLAMA_CPP_DIR}/common
+)
+set(avarex_llama_bundled_libraries
+  $<TARGET_FILE:avarex_llama>
+  PARENT_SCOPE
+)
+############## End LLAMA.cpp settings ##############
+
 set_target_properties(avarex_llama PROPERTIES
   PUBLIC_HEADER avarex_llama.h
   OUTPUT_NAME "avarex_llama"
