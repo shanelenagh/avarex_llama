@@ -1,4 +1,5 @@
 #include "avarex_llama.h"
+#include "llama.h"
 
 // A very short-lived native function.
 //
@@ -20,4 +21,8 @@ FFI_PLUGIN_EXPORT int sum_long_running(int a, int b) {
   usleep(5000 * 1000);
 #endif
   return a + b;
+}
+
+FFI_PLUGIN_EXPORT void start_llama() {
+    ggml_backend_load_all();
 }

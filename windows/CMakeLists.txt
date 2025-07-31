@@ -18,6 +18,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DI
 set(avarex_llama_bundled_libraries
   # Defined in ../src/CMakeLists.txt.
   # This can be changed to accommodate different builds.
-  $<TARGET_FILE:avarex_llama>
+  $<TARGET_FILE:llama>
   PARENT_SCOPE
 )

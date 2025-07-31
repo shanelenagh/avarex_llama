@@ -3,37 +3,38 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-project(avarex_llama_library VERSION 0.0.1 LANGUAGES C)
+set(PROJECT_NAME "llama")
+project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES CXX)
 
-add_library(avarex_llama SHARED
-  "avarex_llama.c"
-)
+set(API_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(LLAMA_CPP_DIR ${API_DIR}/llama_cpp)
 
-############## Start LLAMA.cpp settings ##############
-set(LLAMA_CPP_DIR llama_cpp)
-#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--build-id=none")
-#set(LLAMA_NATIVE OFF CACHE BOOL "llama: disable -march=native flag" FORCE)
-#set(LLAMA_VULKAN ON CACHE BOOL "llama: enable vulkan" FORCE)
+set(BUILD_SHARED_LIBS ON)
+set(CMAKE_INSTALL_LIBDIR lib CACHE PATH "library install dir" FORCE)
+
 add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_CURRENT_BINARY_DIR}/shared)
+
 target_include_directories(
-  avarex_llama 
+  llama 
   PRIVATE 
   ${LLAMA_CPP_DIR}/common
 )
-set(avarex_llama_bundled_libraries
-  $<TARGET_FILE:avarex_llama>
-  PARENT_SCOPE
-)
-############## End LLAMA.cpp settings ##############
 
-set_target_properties(avarex_llama PROPERTIES
-  PUBLIC_HEADER avarex_llama.h
-  OUTPUT_NAME "avarex_llama"
+target_sources(
+  llama 
+  PUBLIC 
+  ${API_DIR}/avarex_llama.c
 )
 
-target_compile_definitions(avarex_llama PUBLIC DART_SHARED_LIB)
+set_target_properties(llama PROPERTIES
+  PUBLIC_HEADER ${API_DIR}/avarex_llama.h
+  BUILD_WITH_INSTALL_RPATH TRUE
+  INSTALL_RPATH "$ORIGIN"
+)
+
+target_compile_definitions(llama PUBLIC DART_SHARED_LIB)
 
 if (ANDROID)
   # Support Android 15 16k page size
-  target_link_options(avarex_llama PRIVATE "-Wl,-z,max-page-size=16384")
+  target_link_options(llama PRIVATE "-Wl,-z,max-page-size=16384")
 endif()
