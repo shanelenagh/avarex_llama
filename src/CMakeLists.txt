@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(PROJECT_NAME "llama")
-project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES CXX)
+project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES C)
 
 set(API_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(LLAMA_CPP_DIR ${API_DIR}/llama_cpp)

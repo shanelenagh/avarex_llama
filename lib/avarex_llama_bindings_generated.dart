@@ -55,12 +55,14 @@ class AvarexLlamaBindings {
   late final _sum_long_running = _sum_long_runningPtr
       .asFunction<int Function(int, int)>();
 
-  void start_llama() {
-    return _start_llama();
+  void start_llama(ffi.Pointer<ffi.Char> model_path) {
+    return _start_llama(model_path);
   }
 
-  late final _start_llamaPtr = _lookup<ffi.NativeFunction<ffi.Void Function()>>(
-    'start_llama',
-  );
-  late final _start_llama = _start_llamaPtr.asFunction<void Function()>();
+  late final _start_llamaPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>(
+        'start_llama',
+      );
+  late final _start_llama = _start_llamaPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
 }

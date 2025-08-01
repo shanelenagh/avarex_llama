@@ -29,4 +29,4 @@ FFI_PLUGIN_EXPORT int sum(int a, int b);
 // Instead, call these native functions on a separate isolate.
 FFI_PLUGIN_EXPORT int sum_long_running(int a, int b);
 
-FFI_PLUGIN_EXPORT void start_llama();
+FFI_PLUGIN_EXPORT void start_llama(const char * model_path);

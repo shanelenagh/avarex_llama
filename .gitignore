@@ -42,3 +42,6 @@ CmakeCache.txt
 .flutter-plugins
 .flutter-plugins-dependencies
 build/
+
+example/linux/flutter/generated*
+example/windows/flutter/generated*
