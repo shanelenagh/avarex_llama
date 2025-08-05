@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <stdlib.h>
+#include <cstring>
 
 struct llama_model* model = NULL;
 const struct llama_vocab* vocab = NULL;
