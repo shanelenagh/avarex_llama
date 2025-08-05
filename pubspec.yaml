@@ -1,7 +1,10 @@
 name: avarex_llama
 description: "A new Flutter FFI plugin project."
 version: 0.0.1
-homepage:
+author: Shane Lenagh <shanelenagh@gmail.com>
+homepage: https://github.com/shanelenagh/avarex_llama
+repository: https://github.com/shanelenagh/avarex_llama
+issue_tracker: https://github.com/shanelenagh/avarex_llama/issues
 
 environment:
   sdk: ^3.8.1
