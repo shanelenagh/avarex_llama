@@ -1,4 +1,4 @@
-cmake .
+cmake . -DBUILD_TEST_EXE=ON
 cmake --build .
 curl -C - -L https://huggingface.co/ibm-granite/granite-3.3-2b-instruct-GGUF/resolve/main/granite-3.3-2b-instruct-Q5_1.gguf?download=true -o granite-3.3-2b-instruct-Q5_1.gguf
 if [[ "$(uname -s)" == "Linux" ]]; then
