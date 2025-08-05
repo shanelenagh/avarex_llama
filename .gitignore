@@ -45,3 +45,4 @@ build/
 
 example/linux/flutter/generated*
 example/windows/flutter/generated*
+example/macos/flutter/Generated*
