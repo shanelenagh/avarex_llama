@@ -26,32 +26,61 @@ class AvarexLlamaBindings {
     ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup,
   ) : _lookup = lookup;
 
+  void start_llama(
+    ffi.Pointer<ffi.Char> path_model,
+    ffi.Pointer<llama_model_params> i_model_params,
+  ) {
+    return _start_llama(path_model, i_model_params);
+  }
+
+  late final _start_llamaPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Void Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<llama_model_params>,
+          )
+        >
+      >('start_llama');
+  late final _start_llama = _start_llamaPtr
+      .asFunction<
+        void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<llama_model_params>)
+      >();
+
   ffi.Pointer<ffi.Char> run_generation(
     ffi.Pointer<ffi.Char> promptc,
     int n_predict,
+    ffi.Pointer<llama_context_params> i_context_params,
+    ffi.Pointer<llama_sampler_chain_params> i_sampler_params,
   ) {
-    return _run_generation(promptc, n_predict);
+    return _run_generation(
+      promptc,
+      n_predict,
+      i_context_params,
+      i_sampler_params,
+    );
   }
 
   late final _run_generationPtr =
       _lookup<
         ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, ffi.Int)
+          ffi.Pointer<ffi.Char> Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Int,
+            ffi.Pointer<llama_context_params>,
+            ffi.Pointer<llama_sampler_chain_params>,
+          )
         >
       >('run_generation');
   late final _run_generation = _run_generationPtr
-      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Char>, int)>();
-
-  void start_llama(ffi.Pointer<ffi.Char> model_path) {
-    return _start_llama(model_path);
-  }
-
-  late final _start_llamaPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>(
-        'start_llama',
-      );
-  late final _start_llama = _start_llamaPtr
-      .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+      .asFunction<
+        ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.Char>,
+          int,
+          ffi.Pointer<llama_context_params>,
+          ffi.Pointer<llama_sampler_chain_params>,
+        )
+      >();
 
   void free_string(ffi.Pointer<ffi.Char> str) {
     return _free_string(str);
@@ -63,4 +92,697 @@ class AvarexLlamaBindings {
       );
   late final _free_string = _free_stringPtr
       .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+}
+
+final class llama_model_params extends ffi.Struct {
+  /// NULL-terminated list of devices to use for offloading (if NULL, all available devices are used)
+  external ffi.Pointer<ggml_backend_dev_t> devices;
+
+  /// NULL-terminated list of buffer types to use for tensors that match a pattern
+  external ffi.Pointer<llama_model_tensor_buft_override> tensor_buft_overrides;
+
+  /// number of layers to store in VRAM
+  @ffi.Int32()
+  external int n_gpu_layers;
+
+  /// how to split the model across multiple GPUs
+  @ffi.UnsignedInt()
+  external int split_mode;
+
+  /// the GPU that is used for the entire model when split_mode is LLAMA_SPLIT_MODE_NONE
+  @ffi.Int32()
+  external int main_gpu;
+
+  /// proportion of the model (layers or rows) to offload to each GPU, size: llama_max_devices()
+  external ffi.Pointer<ffi.Float> tensor_split;
+
+  /// Called with a progress value between 0.0 and 1.0. Pass NULL to disable.
+  /// If the provided progress_callback returns true, model loading continues.
+  /// If it returns false, model loading is immediately aborted.
+  external llama_progress_callback progress_callback;
+
+  /// context pointer passed to the progress callback
+  external ffi.Pointer<ffi.Void> progress_callback_user_data;
+
+  /// override key-value pairs of the model meta data
+  external ffi.Pointer<llama_model_kv_override> kv_overrides;
+
+  /// only load the vocabulary, no weights
+  @ffi.Bool()
+  external bool vocab_only;
+
+  /// use mmap if possible
+  @ffi.Bool()
+  external bool use_mmap;
+
+  /// force system to keep model in RAM
+  @ffi.Bool()
+  external bool use_mlock;
+
+  /// validate model tensor data
+  @ffi.Bool()
+  external bool check_tensors;
+}
+
+typedef ggml_backend_dev_t = ffi.Pointer<ggml_backend_device>;
+
+final class ggml_backend_device extends ffi.Opaque {}
+
+final class llama_model_tensor_buft_override extends ffi.Struct {
+  external ffi.Pointer<ffi.Char> pattern;
+
+  external ggml_backend_buffer_type_t buft;
+}
+
+typedef ggml_backend_buffer_type_t = ffi.Pointer<ggml_backend_buffer_type>;
+
+final class ggml_backend_buffer_type extends ffi.Opaque {}
+
+enum llama_split_mode {
+  /// single GPU
+  LLAMA_SPLIT_MODE_NONE(0),
+
+  /// split layers and KV across GPUs
+  LLAMA_SPLIT_MODE_LAYER(1),
+
+  /// split layers and KV across GPUs, use tensor parallelism if supported
+  LLAMA_SPLIT_MODE_ROW(2);
+
+  final int value;
+  const llama_split_mode(this.value);
+
+  static llama_split_mode fromValue(int value) => switch (value) {
+    0 => LLAMA_SPLIT_MODE_NONE,
+    1 => LLAMA_SPLIT_MODE_LAYER,
+    2 => LLAMA_SPLIT_MODE_ROW,
+    _ => throw ArgumentError("Unknown value for llama_split_mode: $value"),
+  };
+}
+
+typedef llama_progress_callback =
+    ffi.Pointer<ffi.NativeFunction<llama_progress_callbackFunction>>;
+typedef llama_progress_callbackFunction =
+    ffi.Bool Function(ffi.Float progress, ffi.Pointer<ffi.Void> user_data);
+typedef Dartllama_progress_callbackFunction =
+    bool Function(double progress, ffi.Pointer<ffi.Void> user_data);
+
+final class llama_model_kv_override extends ffi.Struct {
+  @ffi.UnsignedInt()
+  external int tag;
+
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> key;
+
+  external UnnamedUnion1 unnamed;
+}
+
+enum llama_model_kv_override_type {
+  LLAMA_KV_OVERRIDE_TYPE_INT(0),
+  LLAMA_KV_OVERRIDE_TYPE_FLOAT(1),
+  LLAMA_KV_OVERRIDE_TYPE_BOOL(2),
+  LLAMA_KV_OVERRIDE_TYPE_STR(3);
+
+  final int value;
+  const llama_model_kv_override_type(this.value);
+
+  static llama_model_kv_override_type fromValue(int value) => switch (value) {
+    0 => LLAMA_KV_OVERRIDE_TYPE_INT,
+    1 => LLAMA_KV_OVERRIDE_TYPE_FLOAT,
+    2 => LLAMA_KV_OVERRIDE_TYPE_BOOL,
+    3 => LLAMA_KV_OVERRIDE_TYPE_STR,
+    _ => throw ArgumentError(
+      "Unknown value for llama_model_kv_override_type: $value",
+    ),
+  };
+}
+
+final class UnnamedUnion1 extends ffi.Union {
+  @ffi.Int64()
+  external int val_i64;
+
+  @ffi.Double()
+  external double val_f64;
+
+  @ffi.Bool()
+  external bool val_bool;
+
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> val_str;
+}
+
+/// NOTE: changing the default values of parameters marked as [EXPERIMENTAL] may cause crashes or incorrect results in certain configurations
+/// https://github.com/ggml-org/llama.cpp/pull/7544
+final class llama_context_params extends ffi.Struct {
+  /// text context, 0 = from model
+  @ffi.Uint32()
+  external int n_ctx;
+
+  /// logical maximum batch size that can be submitted to llama_decode
+  @ffi.Uint32()
+  external int n_batch;
+
+  /// physical maximum batch size
+  @ffi.Uint32()
+  external int n_ubatch;
+
+  /// max number of sequences (i.e. distinct states for recurrent models)
+  @ffi.Uint32()
+  external int n_seq_max;
+
+  /// number of threads to use for generation
+  @ffi.Int32()
+  external int n_threads;
+
+  /// number of threads to use for batch processing
+  @ffi.Int32()
+  external int n_threads_batch;
+
+  /// RoPE scaling type, from `enum llama_rope_scaling_type`
+  @ffi.Int()
+  external int rope_scaling_type;
+
+  /// whether to pool (sum) embedding results by sequence id
+  @ffi.Int()
+  external int pooling_type;
+
+  /// attention type to use for embeddings
+  @ffi.Int()
+  external int attention_type;
+
+  /// RoPE base frequency, 0 = from model
+  @ffi.Float()
+  external double rope_freq_base;
+
+  /// RoPE frequency scaling factor, 0 = from model
+  @ffi.Float()
+  external double rope_freq_scale;
+
+  /// YaRN extrapolation mix factor, negative = from model
+  @ffi.Float()
+  external double yarn_ext_factor;
+
+  /// YaRN magnitude scaling factor
+  @ffi.Float()
+  external double yarn_attn_factor;
+
+  /// YaRN low correction dim
+  @ffi.Float()
+  external double yarn_beta_fast;
+
+  /// YaRN high correction dim
+  @ffi.Float()
+  external double yarn_beta_slow;
+
+  /// YaRN original context size
+  @ffi.Uint32()
+  external int yarn_orig_ctx;
+
+  /// defragment the KV cache if holes/size > thold, <= 0 disabled (default)
+  @ffi.Float()
+  external double defrag_thold;
+
+  external ggml_backend_sched_eval_callback cb_eval;
+
+  external ffi.Pointer<ffi.Void> cb_eval_user_data;
+
+  /// data type for K cache [EXPERIMENTAL]
+  @ffi.UnsignedInt()
+  external int type_k;
+
+  /// data type for V cache [EXPERIMENTAL]
+  @ffi.UnsignedInt()
+  external int type_v;
+
+  /// Abort callback
+  /// if it returns true, execution of llama_decode() will be aborted
+  /// currently works only with CPU execution
+  external ggml_abort_callback abort_callback;
+
+  external ffi.Pointer<ffi.Void> abort_callback_data;
+
+  /// if true, extract embeddings (together with logits)
+  @ffi.Bool()
+  external bool embeddings;
+
+  /// offload the KQV ops (including the KV cache) to GPU
+  @ffi.Bool()
+  external bool offload_kqv;
+
+  /// use flash attention [EXPERIMENTAL]
+  @ffi.Bool()
+  external bool flash_attn;
+
+  /// measure performance timings
+  @ffi.Bool()
+  external bool no_perf;
+
+  /// offload host tensor operations to device
+  @ffi.Bool()
+  external bool op_offload;
+
+  /// use full-size SWA cache (https://github.com/ggml-org/llama.cpp/pull/13194#issuecomment-2868343055)
+  /// NOTE: setting to false when n_seq_max > 1 can cause bad performance in some cases
+  /// ref: https://github.com/ggml-org/llama.cpp/pull/13845#issuecomment-2924800573
+  @ffi.Bool()
+  external bool swa_full;
+
+  /// use a unified buffer across the input sequences when computing the attention
+  /// try to disable when n_seq_max > 1 for improved performance when the sequences do not share a large prefix
+  /// ref: https://github.com/ggml-org/llama.cpp/pull/14363
+  @ffi.Bool()
+  external bool kv_unified;
+}
+
+enum llama_rope_scaling_type {
+  LLAMA_ROPE_SCALING_TYPE_UNSPECIFIED(-1),
+  LLAMA_ROPE_SCALING_TYPE_NONE(0),
+  LLAMA_ROPE_SCALING_TYPE_LINEAR(1),
+  LLAMA_ROPE_SCALING_TYPE_YARN(2),
+  LLAMA_ROPE_SCALING_TYPE_LONGROPE(3);
+
+  static const LLAMA_ROPE_SCALING_TYPE_MAX_VALUE =
+      LLAMA_ROPE_SCALING_TYPE_LONGROPE;
+
+  final int value;
+  const llama_rope_scaling_type(this.value);
+
+  static llama_rope_scaling_type fromValue(int value) => switch (value) {
+    -1 => LLAMA_ROPE_SCALING_TYPE_UNSPECIFIED,
+    0 => LLAMA_ROPE_SCALING_TYPE_NONE,
+    1 => LLAMA_ROPE_SCALING_TYPE_LINEAR,
+    2 => LLAMA_ROPE_SCALING_TYPE_YARN,
+    3 => LLAMA_ROPE_SCALING_TYPE_LONGROPE,
+    _ => throw ArgumentError(
+      "Unknown value for llama_rope_scaling_type: $value",
+    ),
+  };
+
+  @override
+  String toString() {
+    if (this == LLAMA_ROPE_SCALING_TYPE_LONGROPE)
+      return "llama_rope_scaling_type.LLAMA_ROPE_SCALING_TYPE_LONGROPE, llama_rope_scaling_type.LLAMA_ROPE_SCALING_TYPE_MAX_VALUE";
+    return super.toString();
+  }
+}
+
+enum llama_pooling_type {
+  LLAMA_POOLING_TYPE_UNSPECIFIED(-1),
+  LLAMA_POOLING_TYPE_NONE(0),
+  LLAMA_POOLING_TYPE_MEAN(1),
+  LLAMA_POOLING_TYPE_CLS(2),
+  LLAMA_POOLING_TYPE_LAST(3),
+
+  /// used by reranking models to attach the classification head to the graph
+  LLAMA_POOLING_TYPE_RANK(4);
+
+  final int value;
+  const llama_pooling_type(this.value);
+
+  static llama_pooling_type fromValue(int value) => switch (value) {
+    -1 => LLAMA_POOLING_TYPE_UNSPECIFIED,
+    0 => LLAMA_POOLING_TYPE_NONE,
+    1 => LLAMA_POOLING_TYPE_MEAN,
+    2 => LLAMA_POOLING_TYPE_CLS,
+    3 => LLAMA_POOLING_TYPE_LAST,
+    4 => LLAMA_POOLING_TYPE_RANK,
+    _ => throw ArgumentError("Unknown value for llama_pooling_type: $value"),
+  };
+}
+
+enum llama_attention_type {
+  LLAMA_ATTENTION_TYPE_UNSPECIFIED(-1),
+  LLAMA_ATTENTION_TYPE_CAUSAL(0),
+  LLAMA_ATTENTION_TYPE_NON_CAUSAL(1);
+
+  final int value;
+  const llama_attention_type(this.value);
+
+  static llama_attention_type fromValue(int value) => switch (value) {
+    -1 => LLAMA_ATTENTION_TYPE_UNSPECIFIED,
+    0 => LLAMA_ATTENTION_TYPE_CAUSAL,
+    1 => LLAMA_ATTENTION_TYPE_NON_CAUSAL,
+    _ => throw ArgumentError("Unknown value for llama_attention_type: $value"),
+  };
+}
+
+/// Evaluation callback for each node in the graph (set with ggml_backend_sched_set_eval_callback)
+/// when ask == true, the scheduler wants to know if the user wants to observe this node
+/// this allows the scheduler to batch nodes together in order to evaluate them in a single call
+///
+/// when ask == false, the scheduler is passing the node tensor to the user for observation
+/// if the user returns false, the scheduler will cancel the graph compute
+typedef ggml_backend_sched_eval_callback =
+    ffi.Pointer<ffi.NativeFunction<ggml_backend_sched_eval_callbackFunction>>;
+typedef ggml_backend_sched_eval_callbackFunction =
+    ffi.Bool Function(
+      ffi.Pointer<ggml_tensor> t,
+      ffi.Bool ask,
+      ffi.Pointer<ffi.Void> user_data,
+    );
+typedef Dartggml_backend_sched_eval_callbackFunction =
+    bool Function(
+      ffi.Pointer<ggml_tensor> t,
+      bool ask,
+      ffi.Pointer<ffi.Void> user_data,
+    );
+
+/// n-dimensional tensor
+final class ggml_tensor extends ffi.Struct {
+  @ffi.UnsignedInt()
+  external int type;
+
+  external ffi.Pointer<ggml_backend_buffer> buffer;
+
+  /// number of elements
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Int64> ne;
+
+  /// stride in bytes:
+  /// nb[0] = ggml_type_size(type)
+  /// nb[1] = nb[0]   * (ne[0] / ggml_blck_size(type)) + padding
+  /// nb[i] = nb[i-1] * ne[i-1]
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Size> nb;
+
+  /// compute data
+  @ffi.UnsignedInt()
+  external int op;
+
+  /// op params - allocated as int32_t for alignment
+  @ffi.Array.multi([16])
+  external ffi.Array<ffi.Int32> op_params;
+
+  @ffi.Int32()
+  external int flags;
+
+  @ffi.Array.multi([10])
+  external ffi.Array<ffi.Pointer<ggml_tensor>> src;
+
+  /// source tensor and offset for views
+  external ffi.Pointer<ggml_tensor> view_src;
+
+  @ffi.Size()
+  external int view_offs;
+
+  external ffi.Pointer<ffi.Void> data;
+
+  @ffi.Array.multi([64])
+  external ffi.Array<ffi.Char> name;
+
+  /// extra things e.g. for ggml-cuda.cu
+  external ffi.Pointer<ffi.Void> extra;
+
+  @ffi.Array.multi([8])
+  external ffi.Array<ffi.Char> padding;
+}
+
+/// NOTE: always add types at the end of the enum to keep backward compatibility
+enum ggml_type {
+  GGML_TYPE_F32(0),
+  GGML_TYPE_F16(1),
+  GGML_TYPE_Q4_0(2),
+  GGML_TYPE_Q4_1(3),
+
+  /// GGML_TYPE_Q4_2 = 4, support has been removed
+  /// GGML_TYPE_Q4_3 = 5, support has been removed
+  GGML_TYPE_Q5_0(6),
+  GGML_TYPE_Q5_1(7),
+  GGML_TYPE_Q8_0(8),
+  GGML_TYPE_Q8_1(9),
+  GGML_TYPE_Q2_K(10),
+  GGML_TYPE_Q3_K(11),
+  GGML_TYPE_Q4_K(12),
+  GGML_TYPE_Q5_K(13),
+  GGML_TYPE_Q6_K(14),
+  GGML_TYPE_Q8_K(15),
+  GGML_TYPE_IQ2_XXS(16),
+  GGML_TYPE_IQ2_XS(17),
+  GGML_TYPE_IQ3_XXS(18),
+  GGML_TYPE_IQ1_S(19),
+  GGML_TYPE_IQ4_NL(20),
+  GGML_TYPE_IQ3_S(21),
+  GGML_TYPE_IQ2_S(22),
+  GGML_TYPE_IQ4_XS(23),
+  GGML_TYPE_I8(24),
+  GGML_TYPE_I16(25),
+  GGML_TYPE_I32(26),
+  GGML_TYPE_I64(27),
+  GGML_TYPE_F64(28),
+  GGML_TYPE_IQ1_M(29),
+  GGML_TYPE_BF16(30),
+
+  /// GGML_TYPE_Q4_0_4_4 = 31, support has been removed from gguf files
+  /// GGML_TYPE_Q4_0_4_8 = 32,
+  /// GGML_TYPE_Q4_0_8_8 = 33,
+  GGML_TYPE_TQ1_0(34),
+  GGML_TYPE_TQ2_0(35),
+
+  /// GGML_TYPE_IQ4_NL_4_4 = 36,
+  /// GGML_TYPE_IQ4_NL_4_8 = 37,
+  /// GGML_TYPE_IQ4_NL_8_8 = 38,
+  GGML_TYPE_COUNT(39);
+
+  final int value;
+  const ggml_type(this.value);
+
+  static ggml_type fromValue(int value) => switch (value) {
+    0 => GGML_TYPE_F32,
+    1 => GGML_TYPE_F16,
+    2 => GGML_TYPE_Q4_0,
+    3 => GGML_TYPE_Q4_1,
+    6 => GGML_TYPE_Q5_0,
+    7 => GGML_TYPE_Q5_1,
+    8 => GGML_TYPE_Q8_0,
+    9 => GGML_TYPE_Q8_1,
+    10 => GGML_TYPE_Q2_K,
+    11 => GGML_TYPE_Q3_K,
+    12 => GGML_TYPE_Q4_K,
+    13 => GGML_TYPE_Q5_K,
+    14 => GGML_TYPE_Q6_K,
+    15 => GGML_TYPE_Q8_K,
+    16 => GGML_TYPE_IQ2_XXS,
+    17 => GGML_TYPE_IQ2_XS,
+    18 => GGML_TYPE_IQ3_XXS,
+    19 => GGML_TYPE_IQ1_S,
+    20 => GGML_TYPE_IQ4_NL,
+    21 => GGML_TYPE_IQ3_S,
+    22 => GGML_TYPE_IQ2_S,
+    23 => GGML_TYPE_IQ4_XS,
+    24 => GGML_TYPE_I8,
+    25 => GGML_TYPE_I16,
+    26 => GGML_TYPE_I32,
+    27 => GGML_TYPE_I64,
+    28 => GGML_TYPE_F64,
+    29 => GGML_TYPE_IQ1_M,
+    30 => GGML_TYPE_BF16,
+    34 => GGML_TYPE_TQ1_0,
+    35 => GGML_TYPE_TQ2_0,
+    39 => GGML_TYPE_COUNT,
+    _ => throw ArgumentError("Unknown value for ggml_type: $value"),
+  };
+}
+
+final class ggml_backend_buffer extends ffi.Opaque {}
+
+/// available tensor operations:
+enum ggml_op {
+  GGML_OP_NONE(0),
+  GGML_OP_DUP(1),
+  GGML_OP_ADD(2),
+  GGML_OP_ADD1(3),
+  GGML_OP_ACC(4),
+  GGML_OP_SUB(5),
+  GGML_OP_MUL(6),
+  GGML_OP_DIV(7),
+  GGML_OP_SQR(8),
+  GGML_OP_SQRT(9),
+  GGML_OP_LOG(10),
+  GGML_OP_SIN(11),
+  GGML_OP_COS(12),
+  GGML_OP_SUM(13),
+  GGML_OP_SUM_ROWS(14),
+  GGML_OP_MEAN(15),
+  GGML_OP_ARGMAX(16),
+  GGML_OP_COUNT_EQUAL(17),
+  GGML_OP_REPEAT(18),
+  GGML_OP_REPEAT_BACK(19),
+  GGML_OP_CONCAT(20),
+  GGML_OP_SILU_BACK(21),
+
+  /// normalize
+  GGML_OP_NORM(22),
+  GGML_OP_RMS_NORM(23),
+  GGML_OP_RMS_NORM_BACK(24),
+  GGML_OP_GROUP_NORM(25),
+  GGML_OP_L2_NORM(26),
+  GGML_OP_MUL_MAT(27),
+  GGML_OP_MUL_MAT_ID(28),
+  GGML_OP_OUT_PROD(29),
+  GGML_OP_SCALE(30),
+  GGML_OP_SET(31),
+  GGML_OP_CPY(32),
+  GGML_OP_CONT(33),
+  GGML_OP_RESHAPE(34),
+  GGML_OP_VIEW(35),
+  GGML_OP_PERMUTE(36),
+  GGML_OP_TRANSPOSE(37),
+  GGML_OP_GET_ROWS(38),
+  GGML_OP_GET_ROWS_BACK(39),
+  GGML_OP_SET_ROWS(40),
+  GGML_OP_DIAG(41),
+  GGML_OP_DIAG_MASK_INF(42),
+  GGML_OP_DIAG_MASK_ZERO(43),
+  GGML_OP_SOFT_MAX(44),
+  GGML_OP_SOFT_MAX_BACK(45),
+  GGML_OP_ROPE(46),
+  GGML_OP_ROPE_BACK(47),
+  GGML_OP_CLAMP(48),
+  GGML_OP_CONV_TRANSPOSE_1D(49),
+  GGML_OP_IM2COL(50),
+  GGML_OP_IM2COL_BACK(51),
+  GGML_OP_CONV_2D(52),
+  GGML_OP_CONV_2D_DW(53),
+  GGML_OP_CONV_TRANSPOSE_2D(54),
+  GGML_OP_POOL_1D(55),
+  GGML_OP_POOL_2D(56),
+  GGML_OP_POOL_2D_BACK(57),
+  GGML_OP_UPSCALE(58),
+  GGML_OP_PAD(59),
+  GGML_OP_PAD_REFLECT_1D(60),
+  GGML_OP_ROLL(61),
+  GGML_OP_ARANGE(62),
+  GGML_OP_TIMESTEP_EMBEDDING(63),
+  GGML_OP_ARGSORT(64),
+  GGML_OP_LEAKY_RELU(65),
+  GGML_OP_FLASH_ATTN_EXT(66),
+  GGML_OP_FLASH_ATTN_BACK(67),
+  GGML_OP_SSM_CONV(68),
+  GGML_OP_SSM_SCAN(69),
+  GGML_OP_WIN_PART(70),
+  GGML_OP_WIN_UNPART(71),
+  GGML_OP_GET_REL_POS(72),
+  GGML_OP_ADD_REL_POS(73),
+  GGML_OP_RWKV_WKV6(74),
+  GGML_OP_GATED_LINEAR_ATTN(75),
+  GGML_OP_RWKV_WKV7(76),
+  GGML_OP_UNARY(77),
+  GGML_OP_MAP_CUSTOM1(78),
+  GGML_OP_MAP_CUSTOM2(79),
+  GGML_OP_MAP_CUSTOM3(80),
+  GGML_OP_CUSTOM(81),
+  GGML_OP_CROSS_ENTROPY_LOSS(82),
+  GGML_OP_CROSS_ENTROPY_LOSS_BACK(83),
+  GGML_OP_OPT_STEP_ADAMW(84),
+  GGML_OP_GLU(85),
+  GGML_OP_COUNT(86);
+
+  final int value;
+  const ggml_op(this.value);
+
+  static ggml_op fromValue(int value) => switch (value) {
+    0 => GGML_OP_NONE,
+    1 => GGML_OP_DUP,
+    2 => GGML_OP_ADD,
+    3 => GGML_OP_ADD1,
+    4 => GGML_OP_ACC,
+    5 => GGML_OP_SUB,
+    6 => GGML_OP_MUL,
+    7 => GGML_OP_DIV,
+    8 => GGML_OP_SQR,
+    9 => GGML_OP_SQRT,
+    10 => GGML_OP_LOG,
+    11 => GGML_OP_SIN,
+    12 => GGML_OP_COS,
+    13 => GGML_OP_SUM,
+    14 => GGML_OP_SUM_ROWS,
+    15 => GGML_OP_MEAN,
+    16 => GGML_OP_ARGMAX,
+    17 => GGML_OP_COUNT_EQUAL,
+    18 => GGML_OP_REPEAT,
+    19 => GGML_OP_REPEAT_BACK,
+    20 => GGML_OP_CONCAT,
+    21 => GGML_OP_SILU_BACK,
+    22 => GGML_OP_NORM,
+    23 => GGML_OP_RMS_NORM,
+    24 => GGML_OP_RMS_NORM_BACK,
+    25 => GGML_OP_GROUP_NORM,
+    26 => GGML_OP_L2_NORM,
+    27 => GGML_OP_MUL_MAT,
+    28 => GGML_OP_MUL_MAT_ID,
+    29 => GGML_OP_OUT_PROD,
+    30 => GGML_OP_SCALE,
+    31 => GGML_OP_SET,
+    32 => GGML_OP_CPY,
+    33 => GGML_OP_CONT,
+    34 => GGML_OP_RESHAPE,
+    35 => GGML_OP_VIEW,
+    36 => GGML_OP_PERMUTE,
+    37 => GGML_OP_TRANSPOSE,
+    38 => GGML_OP_GET_ROWS,
+    39 => GGML_OP_GET_ROWS_BACK,
+    40 => GGML_OP_SET_ROWS,
+    41 => GGML_OP_DIAG,
+    42 => GGML_OP_DIAG_MASK_INF,
+    43 => GGML_OP_DIAG_MASK_ZERO,
+    44 => GGML_OP_SOFT_MAX,
+    45 => GGML_OP_SOFT_MAX_BACK,
+    46 => GGML_OP_ROPE,
+    47 => GGML_OP_ROPE_BACK,
+    48 => GGML_OP_CLAMP,
+    49 => GGML_OP_CONV_TRANSPOSE_1D,
+    50 => GGML_OP_IM2COL,
+    51 => GGML_OP_IM2COL_BACK,
+    52 => GGML_OP_CONV_2D,
+    53 => GGML_OP_CONV_2D_DW,
+    54 => GGML_OP_CONV_TRANSPOSE_2D,
+    55 => GGML_OP_POOL_1D,
+    56 => GGML_OP_POOL_2D,
+    57 => GGML_OP_POOL_2D_BACK,
+    58 => GGML_OP_UPSCALE,
+    59 => GGML_OP_PAD,
+    60 => GGML_OP_PAD_REFLECT_1D,
+    61 => GGML_OP_ROLL,
+    62 => GGML_OP_ARANGE,
+    63 => GGML_OP_TIMESTEP_EMBEDDING,
+    64 => GGML_OP_ARGSORT,
+    65 => GGML_OP_LEAKY_RELU,
+    66 => GGML_OP_FLASH_ATTN_EXT,
+    67 => GGML_OP_FLASH_ATTN_BACK,
+    68 => GGML_OP_SSM_CONV,
+    69 => GGML_OP_SSM_SCAN,
+    70 => GGML_OP_WIN_PART,
+    71 => GGML_OP_WIN_UNPART,
+    72 => GGML_OP_GET_REL_POS,
+    73 => GGML_OP_ADD_REL_POS,
+    74 => GGML_OP_RWKV_WKV6,
+    75 => GGML_OP_GATED_LINEAR_ATTN,
+    76 => GGML_OP_RWKV_WKV7,
+    77 => GGML_OP_UNARY,
+    78 => GGML_OP_MAP_CUSTOM1,
+    79 => GGML_OP_MAP_CUSTOM2,
+    80 => GGML_OP_MAP_CUSTOM3,
+    81 => GGML_OP_CUSTOM,
+    82 => GGML_OP_CROSS_ENTROPY_LOSS,
+    83 => GGML_OP_CROSS_ENTROPY_LOSS_BACK,
+    84 => GGML_OP_OPT_STEP_ADAMW,
+    85 => GGML_OP_GLU,
+    86 => GGML_OP_COUNT,
+    _ => throw ArgumentError("Unknown value for ggml_op: $value"),
+  };
+}
+
+/// Abort callback
+/// If not NULL, called before ggml computation
+/// If it returns true, the computation is aborted
+typedef ggml_abort_callback =
+    ffi.Pointer<ffi.NativeFunction<ggml_abort_callbackFunction>>;
+typedef ggml_abort_callbackFunction =
+    ffi.Bool Function(ffi.Pointer<ffi.Void> data);
+typedef Dartggml_abort_callbackFunction =
+    bool Function(ffi.Pointer<ffi.Void> data);
+
+final class llama_sampler_chain_params extends ffi.Struct {
+  /// whether to measure performance timings
+  @ffi.Bool()
+  external bool no_perf;
 }

@@ -10,6 +10,11 @@ headers:
     - 'src/avarex_llama.h'
   include-directives:
     - 'src/avarex_llama.h'
+    - 'src/llama_cpp/include/llama.h'
+    - 'src/llama_cpp/ggml/include/ggml.h'    
+compiler-opts:
+  - '-Isrc/llama_cpp/include/'
+  - '-Isrc/llama_cpp/ggml/include/'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

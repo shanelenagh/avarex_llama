@@ -9,8 +9,10 @@ void main() {
     print('${record.time} ${record.level.name} ${record.loggerName} - ${record.message}');
   });
   log.info("Starting llama...");
-  final llama = avarex_llama.LlamaEngine("granite-3.3-2b-instruct-Q5_1.gguf");
+  final llama = avarex_llama.LlamaEngine("granite-3.3-2b-instruct-Q5_1.gguf", null);
   log.info("Started llama");
-  final String answer = llama.runGeneration("What height does class A airspace begin at?", 20);
+  final String answer = llama.runGeneration("What height does class A airspace begin at?", 20, null, null);
   log.info("Got Answer in Dart/Flutter: $answer");
+  final String answer2 = llama.runGeneration("What is the height of class G airspace?", 20, null, null);
+  log.info("Got Answer in Dart/Flutter: $answer2");  
 }

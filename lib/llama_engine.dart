@@ -9,14 +9,14 @@ class LlamaEngine {
   final _log = Logger((LlamaEngine).toString());
   final avarex_llama.AvarexLlamaBindings _llamacppLib = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open("llama.dll"));
 
-  LlamaEngine(String modelPath) {
+  LlamaEngine(String modelPath, ffi.Pointer<avarex_llama.llama_model_params>? i_model_params) {   
     _log.info("Starting llama.cpp with model $modelPath...");
-    _llamacppLib.start_llama(_dart2ffi(modelPath));
+    _llamacppLib.start_llama(_dart2ffi(modelPath), i_model_params ?? ffi.nullptr);
     _log.info("Started llama.cpp");
   }
 
-  String runGeneration(String prompt, int nPredict) {
-    return _ffi2dart(_llamacppLib.run_generation(_dart2ffi(prompt), nPredict));
+  String runGeneration(String prompt, int nPredict, ffi.Pointer<avarex_llama.llama_context_params>? i_context_params, ffi.Pointer<avarex_llama.llama_sampler_chain_params>? i_sampler_params) {
+    return _ffi2dart(_llamacppLib.run_generation(_dart2ffi(prompt), nPredict, i_context_params ?? ffi.nullptr, ffi.nullptr ?? ffi.nullptr));
   }
   
   @pragma("vm:prefer-inline")
