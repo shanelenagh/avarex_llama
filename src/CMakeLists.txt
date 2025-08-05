@@ -38,3 +38,7 @@ if (ANDROID)
   # Support Android 15 16k page size
   target_link_options(llama PRIVATE "-Wl,-z,max-page-size=16384")
 endif()
+
+# Add test app
+add_executable(llama_test avarex_llama.cpp)
+target_link_libraries(llama_test PRIVATE llama)

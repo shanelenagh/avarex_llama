@@ -124,3 +124,16 @@ FFI_PLUGIN_EXPORT void start_llama(char* path_model) {
     vocab = llama_model_get_vocab(model);
 
 }
+
+int main(int argc, char** argv) {
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <path_to_model> <prompt>\n", argv[0]);
+        return 1;
+    }
+
+    start_llama(argv[1]);
+    char* result = run_generation(argv[2], 50); // Generate 50 tokens
+    printf("Generated text: %s\n", result);
+
+    return 0;
+}
