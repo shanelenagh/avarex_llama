@@ -11,10 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-  logging: any
+  ffi: ^2.1.3
+  logging: ^1.3.0
 
 dev_dependencies:
-  ffi: ^2.1.3
   ffigen: ^13.0.0
   flutter_test:
     sdk: flutter
@@ -80,5 +80,3 @@ flutter:
   #
   # For details regarding fonts in packages, see
   # https://flutter.dev/to/font-from-package
-  assets:
-    - json_schema

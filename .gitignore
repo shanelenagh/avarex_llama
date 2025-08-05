@@ -46,7 +46,7 @@ build/
 example/linux/flutter/generated*
 example/windows/flutter/generated*
 example/macos/flutter/Generated*
-src/llama_cpp
+src/llama_cpp/
 src/Debug
 src/llama_test.dir
 **/.vscode
