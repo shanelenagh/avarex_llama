@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(PROJECT_NAME "llama")
-project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES C)
+project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES CXX)
 
 set(API_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(LLAMA_CPP_DIR ${API_DIR}/llama_cpp)
@@ -23,11 +23,11 @@ target_include_directories(
 target_sources(
   llama 
   PUBLIC 
-  ${API_DIR}/avarex_llama.c
+  ${API_DIR}/avarex_llama.cpp
 )
 
 set_target_properties(llama PROPERTIES
-  PUBLIC_HEADER ${API_DIR}/avarex_llama.h
+  PUBLIC_HEADER ${API_DIR}/avarex_llama.hpp
   BUILD_WITH_INSTALL_RPATH TRUE
   INSTALL_RPATH "$ORIGIN"
 )
