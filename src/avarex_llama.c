@@ -23,6 +23,17 @@ FFI_PLUGIN_EXPORT int sum_long_running(int a, int b) {
   return a + b;
 }
 
-FFI_PLUGIN_EXPORT void start_llama() {
+
+FFI_PLUGIN_EXPORT void start_llama(const char * path_model) {
+   
     ggml_backend_load_all();
+
+    struct llama_model_params model_params = llama_model_default_params();
+    struct llama_context_params context_params = llama_context_default_params();    
+
+    struct llama_model* model = llama_model_load_from_file(path_model, model_params);
+    struct llama_context* ctx = llama_init_from_model(model, context_params);  
+
+    struct llama_vocab* vocab = llama_model_get_vocab(model); 
+    struct llama_sampler* sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
 }
