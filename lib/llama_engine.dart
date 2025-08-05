@@ -9,14 +9,17 @@ class LlamaEngine {
   final _log = Logger((LlamaEngine).toString());
   final avarex_llama.AvarexLlamaBindings _llamacppLib = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open("llama.dll"));
 
-  LlamaEngine(String modelPath, ffi.Pointer<avarex_llama.llama_model_params>? modelParams) {   
+  LlamaEngine(String modelPath, avarex_llama.llama_model_params? pmodelParams) {   
     _log.info("Starting llama.cpp with model $modelPath...");
-    _llamacppLib.start_llama(_dart2ffi(modelPath), modelParams ?? ffi.nullptr);
+    avarex_llama.llama_model_params modelParams = pmodelParams ?? _llamacppLib.get_default_model_params();
+    modelParams.n_gpu_layers = 99;
+    _llamacppLib.start_llama(_dart2ffi(modelPath), modelParams);
     _log.info("Started llama.cpp");
   }
 
-  String runGeneration(String prompt, int nPredict, ffi.Pointer<avarex_llama.llama_context_params>? contextParams, ffi.Pointer<avarex_llama.llama_sampler_chain_params>? samplerParams) {
-    return _ffi2dart(_llamacppLib.run_generation(_dart2ffi(prompt), nPredict, contextParams ?? ffi.nullptr, samplerParams ?? ffi.nullptr));
+  String runGeneration(String prompt, int nPredict, avarex_llama.llama_context_params? contextParams, avarex_llama.llama_sampler_chain_params? samplerParams) {
+    return _ffi2dart(_llamacppLib.run_generation(_dart2ffi(prompt), nPredict, 
+      contextParams ?? _llamacppLib.get_default_context_params(), samplerParams ?? _llamacppLib.get_default_sampler_params()));
   }
   
   @pragma("vm:prefer-inline")

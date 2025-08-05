@@ -9,25 +9,16 @@
 struct llama_model* model = NULL;
 const struct llama_vocab* vocab = NULL;
 
-FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params* i_model_params) {
-   
+FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params model_params) {
+    // start model backend
     ggml_backend_load_all();
-
-    if (i_model_params != NULL) {
-        printf("WEEEEEEEEEEEE GOT A MODEL PARAMS!!");
-    }
-
-    // initialize the model
-    struct llama_model_params model_params = (i_model_params != NULL ? *i_model_params : llama_model_default_params());
-    model_params.n_gpu_layers = 99; // use all available GPU layers (if any)
+    // initialize the specific model
     model = llama_model_load_from_file(path_model, model_params);
-
     // initialize vocabulary
     vocab = llama_model_get_vocab(model);
-
 }
 
-FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llama_context_params* i_context_params, struct llama_sampler_chain_params* i_sampler_params) {
+FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llama_context_params context_params, struct llama_sampler_chain_params sampler_params) {
 
     std::string prompt(promptc);
 
@@ -45,16 +36,16 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
     }    
 
     // inittialize the context, sizing according to prompt and allowed prediction token size
-    struct llama_context_params context_params = (i_context_params != NULL ? *i_context_params : llama_context_default_params());    
+    //struct llama_context_params context_params = (i_context_params != NULL ? *i_context_params : llama_context_default_params());    
     context_params.n_ctx = n_prompt + n_predict - 1; // make context big enough to hold the prompt and desired # of prediction tokens
     context_params.n_batch = n_prompt; // n_batch is the maximum number of tokens that can be processed in a single call to llama_decode
     context_params.no_perf = false; // enable performance stats
     struct llama_context* ctx = llama_init_from_model(model, context_params);  
 
     // create a sampler for the generation
-    auto sparams = (i_sampler_params != NULL ? *i_sampler_params : llama_sampler_chain_default_params());
-    sparams.no_perf = false; // enable performance stats
-    struct llama_sampler* sampler = llama_sampler_chain_init(sparams);
+    //auto sparams = (i_sampler_params != NULL ? *i_sampler_params : llama_sampler_chain_default_params());
+    sampler_params.no_perf = false; // enable performance stats
+    struct llama_sampler* sampler = llama_sampler_chain_init(sampler_params);
     llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
 
     // TODO: print the prompt??
@@ -133,6 +124,18 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
     return result_copy;
 }
 
+FFI_PLUGIN_EXPORT struct llama_model_params get_default_model_params() {
+    return llama_model_default_params();
+}
+
+FFI_PLUGIN_EXPORT struct llama_context_params get_default_context_params() {
+    return llama_context_default_params();
+}
+
+FFI_PLUGIN_EXPORT struct llama_sampler_chain_params get_default_sampler_params() {
+    return llama_sampler_chain_default_params();
+}
+
 FFI_PLUGIN_EXPORT void free_string(char* str) {
     delete str;
 }
@@ -144,8 +147,10 @@ int main(int argc, char** argv) {
             return 1;
     }
 
-    start_llama(argv[1], NULL);
-    char* result = run_generation(argv[2], atoi(argv[3]), NULL, NULL);
+    llama_model_params mparams = get_default_model_params();
+    mparams.n_gpu_layers = 99;
+    start_llama(argv[1], mparams);
+    char* result = run_generation(argv[2], atoi(argv[3]), get_default_context_params(), get_default_sampler_params());
     if (result == NULL) {
         goto error;
     }

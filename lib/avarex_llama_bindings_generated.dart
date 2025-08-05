@@ -28,37 +28,27 @@ class AvarexLlamaBindings {
 
   void start_llama(
     ffi.Pointer<ffi.Char> path_model,
-    ffi.Pointer<llama_model_params> i_model_params,
+    llama_model_params model_params,
   ) {
-    return _start_llama(path_model, i_model_params);
+    return _start_llama(path_model, model_params);
   }
 
   late final _start_llamaPtr =
       _lookup<
         ffi.NativeFunction<
-          ffi.Void Function(
-            ffi.Pointer<ffi.Char>,
-            ffi.Pointer<llama_model_params>,
-          )
+          ffi.Void Function(ffi.Pointer<ffi.Char>, llama_model_params)
         >
       >('start_llama');
   late final _start_llama = _start_llamaPtr
-      .asFunction<
-        void Function(ffi.Pointer<ffi.Char>, ffi.Pointer<llama_model_params>)
-      >();
+      .asFunction<void Function(ffi.Pointer<ffi.Char>, llama_model_params)>();
 
   ffi.Pointer<ffi.Char> run_generation(
     ffi.Pointer<ffi.Char> promptc,
     int n_predict,
-    ffi.Pointer<llama_context_params> i_context_params,
-    ffi.Pointer<llama_sampler_chain_params> i_sampler_params,
+    llama_context_params context_params,
+    llama_sampler_chain_params sampler_params,
   ) {
-    return _run_generation(
-      promptc,
-      n_predict,
-      i_context_params,
-      i_sampler_params,
-    );
+    return _run_generation(promptc, n_predict, context_params, sampler_params);
   }
 
   late final _run_generationPtr =
@@ -67,8 +57,8 @@ class AvarexLlamaBindings {
           ffi.Pointer<ffi.Char> Function(
             ffi.Pointer<ffi.Char>,
             ffi.Int,
-            ffi.Pointer<llama_context_params>,
-            ffi.Pointer<llama_sampler_chain_params>,
+            llama_context_params,
+            llama_sampler_chain_params,
           )
         >
       >('run_generation');
@@ -77,10 +67,43 @@ class AvarexLlamaBindings {
         ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.Char>,
           int,
-          ffi.Pointer<llama_context_params>,
-          ffi.Pointer<llama_sampler_chain_params>,
+          llama_context_params,
+          llama_sampler_chain_params,
         )
       >();
+
+  llama_model_params get_default_model_params() {
+    return _get_default_model_params();
+  }
+
+  late final _get_default_model_paramsPtr =
+      _lookup<ffi.NativeFunction<llama_model_params Function()>>(
+        'get_default_model_params',
+      );
+  late final _get_default_model_params = _get_default_model_paramsPtr
+      .asFunction<llama_model_params Function()>();
+
+  llama_context_params get_default_context_params() {
+    return _get_default_context_params();
+  }
+
+  late final _get_default_context_paramsPtr =
+      _lookup<ffi.NativeFunction<llama_context_params Function()>>(
+        'get_default_context_params',
+      );
+  late final _get_default_context_params = _get_default_context_paramsPtr
+      .asFunction<llama_context_params Function()>();
+
+  llama_sampler_chain_params get_default_sampler_params() {
+    return _get_default_sampler_params();
+  }
+
+  late final _get_default_sampler_paramsPtr =
+      _lookup<ffi.NativeFunction<llama_sampler_chain_params Function()>>(
+        'get_default_sampler_params',
+      );
+  late final _get_default_sampler_params = _get_default_sampler_paramsPtr
+      .asFunction<llama_sampler_chain_params Function()>();
 
   void free_string(ffi.Pointer<ffi.Char> str) {
     return _free_string(str);

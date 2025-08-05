@@ -17,6 +17,9 @@
     #endif
 #endif
 
-FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params* i_model_params);
-FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llama_context_params* i_context_params, struct llama_sampler_chain_params* i_sampler_params);
+FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params model_params);
+FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llama_context_params context_params, struct llama_sampler_chain_params sampler_params);
+FFI_PLUGIN_EXPORT struct llama_model_params get_default_model_params();
+FFI_PLUGIN_EXPORT struct llama_context_params get_default_context_params();
+FFI_PLUGIN_EXPORT struct llama_sampler_chain_params get_default_sampler_params();
 FFI_PLUGIN_EXPORT void free_string(char* str);
