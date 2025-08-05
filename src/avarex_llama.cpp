@@ -1,4 +1,4 @@
-#include "avarex_llama.hpp"
+#include "avarex_llama.h"
 #include "llama.h"
 #include "stdio.h"
 #include <string>
@@ -129,6 +129,10 @@ FFI_PLUGIN_EXPORT void start_llama(char* path_model) {
 
 }
 
+FFI_PLUGIN_EXPORT void free_string(char* str) {
+    delete str;
+}
+
 int main(int argc, char** argv) {
     if (argc < 4) {
         error:
@@ -145,3 +149,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+

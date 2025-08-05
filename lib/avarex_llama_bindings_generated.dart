@@ -52,4 +52,15 @@ class AvarexLlamaBindings {
       );
   late final _start_llama = _start_llamaPtr
       .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
+
+  void free_string(ffi.Pointer<ffi.Char> str) {
+    return _free_string(str);
+  }
+
+  late final _free_stringPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Char>)>>(
+        'free_string',
+      );
+  late final _free_string = _free_stringPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Char>)>();
 }

@@ -33,7 +33,7 @@ target_sources(
   ${API_DIR}/avarex_llama.cpp
 )
 set_target_properties(llama PROPERTIES
-  PUBLIC_HEADER ${API_DIR}/avarex_llama.hpp
+  PUBLIC_HEADER ${API_DIR}/avarex_llama.h
   BUILD_WITH_INSTALL_RPATH TRUE
   INSTALL_RPATH "$ORIGIN"
 )
