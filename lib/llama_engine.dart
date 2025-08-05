@@ -53,8 +53,6 @@ class ModelConfig {
 class ContextConfig {
   /// Max number of text context tokens
   int? maxTokenCount;
-  /// Logical max batch size to submit to llama decode
-  int? logicalMaxBatchSize;
   /// Physical maximum batch size
   int? physicalMaxBatchSize;
   /// max number of sequences (i.e. distinct states for recurrent models)
@@ -69,7 +67,6 @@ class ContextConfig {
   avarex_llama.llama_context_params _getLlamaContextParams(avarex_llama.AvarexLlamaBindings llamacppLib) {
     var ctxParams = llamacppLib.get_default_context_params();
     ctxParams.n_ctx = maxTokenCount ?? ctxParams.n_ctx;
-    ctxParams.n_batch = logicalMaxBatchSize ?? ctxParams.n_batch;
     ctxParams.n_ubatch = physicalMaxBatchSize ?? ctxParams.n_ubatch;
     ctxParams.n_seq_max = maxSequences ?? ctxParams.n_seq_max;
     ctxParams.n_threads = genThreadCount ?? ctxParams.n_threads;

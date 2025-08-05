@@ -1,5 +1,5 @@
 #include "avarex_llama.h"
-#include "llama.h"
+
 #include "stdio.h"
 #include <string>
 #include <vector>
@@ -36,30 +36,13 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
     }    
 
     // inittialize the context, sizing according to prompt and allowed prediction token size
-    //struct llama_context_params context_params = (i_context_params != NULL ? *i_context_params : llama_context_default_params());    
     context_params.n_ctx = n_prompt + n_predict - 1; // make context big enough to hold the prompt and desired # of prediction tokens
     context_params.n_batch = n_prompt; // n_batch is the maximum number of tokens that can be processed in a single call to llama_decode
-    context_params.no_perf = false; // enable performance stats
     struct llama_context* ctx = llama_init_from_model(model, context_params);  
 
     // create a sampler for the generation
-    //auto sparams = (i_sampler_params != NULL ? *i_sampler_params : llama_sampler_chain_default_params());
-    sampler_params.no_perf = false; // enable performance stats
     struct llama_sampler* sampler = llama_sampler_chain_init(sampler_params);
     llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
-
-    // TODO: print the prompt??
-    fprintf(stderr, "PRINTING PROMPT (confirming tokenization): %s\n", prompt.c_str());
-    for (auto id : prompt_tokens) {
-        char buf[128];
-        int n = llama_token_to_piece(vocab, id, buf, sizeof(buf), 0, true);
-        if (n < 0) {
-            fprintf(stderr, "%s: error: failed to convert token to piece\n", __func__);
-            return NULL;
-        }
-        std::string s(buf, n);
-        printf("%s", s.c_str());
-    } 
 
     // prepare a batch for the prompt
     llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());    
@@ -95,8 +78,8 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
             }
             std::string s(buf, n);
             generation += s;
-            printf("%s", s.c_str());
-            fflush(stdout);
+            // printf("%s", s.c_str());
+            // fflush(stdout);
 
             // prepare the next batch with the sampled token
             batch = llama_batch_get_one(&new_token_id, 1);
@@ -154,7 +137,7 @@ int main(int argc, char** argv) {
     if (result == NULL) {
         goto error;
     }
-    printf("Generated text from test: %s\n", result);
+    printf("Generated text from executable: %s\n", result);
 
     return 0;
 }
