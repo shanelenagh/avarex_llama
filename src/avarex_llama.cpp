@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 struct llama_model* model = NULL;
 const struct llama_vocab* vocab = NULL;
@@ -128,18 +129,18 @@ FFI_PLUGIN_EXPORT void start_llama(char* path_model) {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 3) {
+    if (argc < 4) {
         error:
-            fprintf(stderr, "Usage: %s <path_to_model> <prompt>\n", argv[0]);
+            fprintf(stderr, "Usage: %s <path_to_model> <prompt> <max_tokens>\n", argv[0]);
             return 1;
     }
 
     start_llama(argv[1]);
-    char* result = run_generation(argv[2], 50); // Generate 50 tokens
+    char* result = run_generation(argv[2], atoi(argv[3]));
     if (result == NULL) {
         goto error;
     }
-    printf("Generated text: %s\n", result);
+    printf("Generated text from test: %s\n", result);
 
     return 0;
 }
