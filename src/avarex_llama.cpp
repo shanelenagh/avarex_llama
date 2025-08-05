@@ -108,7 +108,9 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict) {
     llama_sampler_free(sampler);
     llama_free(ctx);
 
-    return (char*) generation.c_str();
+    char *result_copy = new char[generation.size() + 1];
+    strcpy(result_copy, generation.c_str());
+    return result_copy;
 }
 
 FFI_PLUGIN_EXPORT void start_llama(char* path_model) {
@@ -127,12 +129,16 @@ FFI_PLUGIN_EXPORT void start_llama(char* path_model) {
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <path_to_model> <prompt>\n", argv[0]);
-        return 1;
+        error:
+            fprintf(stderr, "Usage: %s <path_to_model> <prompt>\n", argv[0]);
+            return 1;
     }
 
     start_llama(argv[1]);
     char* result = run_generation(argv[2], 50); // Generate 50 tokens
+    if (result == NULL) {
+        goto error;
+    }
     printf("Generated text: %s\n", result);
 
     return 0;
