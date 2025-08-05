@@ -1,13 +1,9 @@
-import 'dart:ffi' as ffi;
-import 'package:ffi/ffi.dart';
-import 'package:avarex_llama/avarex_llama_bindings_generated.dart' as avarex_llama;
-import 'package:path/path.dart' as p;
+import 'package:avarex_llama/llama_engine.dart' as avarex_llama;
 
 void main() {
-  final llamacpp_dll = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open(p.join(p.current, "llama.dll")));
   print("Starting llama...");
-  llamacpp_dll.start_llama("granite-3.3-2b-instruct-Q5_1.gguf".toNativeUtf8().cast<ffi.Char>());
+  final llama = avarex_llama.LlamaEngine("granite-3.3-2b-instruct-Q5_1.gguf");
   print("Started llama");
-  var ans = llamacpp_dll.run_generation("What height does class A airspace begin at?".toNativeUtf8().cast<ffi.Char>(), 20);
-  //print("Answer: ${ans.toDartString()}");
+  final String answer = llama.runGeneration("What height does class A airspace begin at?", 20);
+  print("Got Answer in Dart/Flutter: ${answer}");
 }
