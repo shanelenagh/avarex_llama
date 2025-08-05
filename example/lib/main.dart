@@ -8,6 +8,6 @@ void main() {
   print("Starting llama...");
   llamacpp_dll.start_llama("granite-3.3-2b-instruct-Q5_1.gguf".toNativeUtf8().cast<ffi.Char>());
   print("Started llama");
-  var ans = llamacpp_dll.run_generation("What is the FAR ultralight weight limit?".toNativeUtf8().cast<ffi.Char>(), 100);
+  var ans = llamacpp_dll.run_generation("What height does class A airspace begin at?".toNativeUtf8().cast<ffi.Char>(), 20);
   //print("Answer: ${ans.toDartString()}");
 }

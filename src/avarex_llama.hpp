@@ -16,5 +16,13 @@
 #define FFI_PLUGIN_EXPORT
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict);
 FFI_PLUGIN_EXPORT void start_llama(char* model_path);
+
+#ifdef __cplusplus
+}
+#endif
