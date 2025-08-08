@@ -21,6 +21,7 @@ src/*.vcxproj*
 src/*.sln
 src/*.cmake
 CmakeCache.txt
+src/avarex_llama.dir/
 
 # IntelliJ related
 *.iml
