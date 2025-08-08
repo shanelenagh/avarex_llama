@@ -7,6 +7,11 @@ output: 'lib/avarex_llama_bindings_generated.dart'
 headers:
   entry-points:
     - 'src/avarex_llama.h' 
+  include-directives:
+    - 'src/avarex_llama.h'
+compiler-opts:
+  - '-Isrc/llama_cpp/include'
+  - '-Isrc/llama_cpp/ggml/include'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types
@@ -14,3 +19,4 @@ preamble: |
 comments:
   style: any
   length: full
+#ignore-source-errors: true
