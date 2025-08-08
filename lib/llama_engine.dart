@@ -7,7 +7,7 @@ import 'package:logging/logging.dart';
 class LlamaEngine {
 
   final _log = Logger((LlamaEngine).toString());
-  final avarex_llama.AvarexLlamaBindings _llamacppLib = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open("llama.dll"));
+  final avarex_llama.AvarexLlamaBindings _llamacppLib = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open("avarex_llama.dll"));
 
   LlamaEngine(String modelPath, ModelConfig? modelConfig) {   
     _log.info("Starting llama.cpp with model $modelPath...");

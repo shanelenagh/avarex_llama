@@ -2,19 +2,11 @@
 name: AvarexLlamaBindings
 description: |
   Bindings for `src/avarex_llama.h`.
-
   Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
 output: 'lib/avarex_llama_bindings_generated.dart'
 headers:
   entry-points:
-    - 'src/avarex_llama.h'
-  include-directives:
-    - 'src/avarex_llama.h'
-    - 'src/llama_cpp/include/llama.h'
-    - 'src/llama_cpp/ggml/include/ggml.h'    
-compiler-opts:
-  - '-Isrc/llama_cpp/include/'
-  - '-Isrc/llama_cpp/ggml/include/'
+    - 'src/avarex_llama.h' 
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types
