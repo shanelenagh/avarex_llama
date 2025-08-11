@@ -6,7 +6,6 @@ import 'package:avarex_llama_example/config/app_controller_advice.dart';
 import 'package:avarex_llama_example/config/openapi/openapi_configuration.dart';
 import 'package:avarex_llama_example/config/openapi/openapi_controller.dart';
 import 'package:avarex_llama_example/config/resources/resource_configuration.dart';
-import 'package:avarex_llama_example/src/hello_controller.dart';
 import 'package:avarex_llama_example/src/llama_controller.dart';
 
 import 'dart:convert';
@@ -104,33 +103,6 @@ class VadenApp implements DartVadenApplication {
     );
     _injector.addLazySingleton(configurationResourceConfiguration.resources);
 
-    _injector.add(HelloController.new);
-    apis.add(const Api(tag: 'Hello', description: 'Hello Controller'));
-    final routerHelloController = Router();
-    paths['/hello/ping'] = <String, dynamic>{
-      ...paths['/hello/ping'] ?? <String, dynamic>{},
-      'get': {
-        'tags': ['Hello'],
-        'summary': '',
-        'description': '',
-        'responses': <String, dynamic>{},
-        'parameters': <Map<String, dynamic>>[],
-        'security': <Map<String, dynamic>>[],
-      },
-    };
-
-    var pipelineHelloControllerping = const Pipeline();
-    final handlerHelloControllerping = (Request request) async {
-      final ctrl = _injector.get<HelloController>();
-      final result = ctrl.ping();
-      return Response.ok(result, headers: {'Content-Type': 'text/plain'});
-    };
-    routerHelloController.get(
-      '/ping',
-      pipelineHelloControllerping.addHandler(handlerHelloControllerping),
-    );
-    _router.mount('/hello', routerHelloController.call);
-
     _injector.add(LlamaController.new);
     apis.add(const Api(tag: 'Llama', description: 'Llama LLM Service'));
     final routerLlamaController = Router();
@@ -146,6 +118,9 @@ class VadenApp implements DartVadenApplication {
       },
     };
 
+    paths['/llama/ask']['get']['summary'] = 'Ask the LLM a question';
+    paths['/llama/ask']['get']['description'] =
+        'Send a question to the LLM and receive a response.';
     var pipelineLlamaControllerask = const Pipeline();
     paths['/llama/ask']['get']['parameters']?.add({
       'name': 'question',
@@ -161,7 +136,9 @@ class VadenApp implements DartVadenApplication {
           body: jsonEncode({'error': 'Query param is required (question)'}),
         );
       }
-      final question = _parse<String>(request.url.queryParameters['question'])!;
+      final question = _parse<dynamic>(
+        request.url.queryParameters['question'],
+      )!;
 
       final ctrl = _injector.get<LlamaController>();
       final result = ctrl.ask(question);

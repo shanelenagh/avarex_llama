@@ -10,9 +10,9 @@ class OpenApiConfiguration {
     return OpenApi(
       version: '3.0.0',
       info: Info(
-        title: 'Vaden API',
+        title: 'Dllama API',
         version: '1.0.0',
-        description: 'Vaden Backend example',
+        description: 'Dart Llama API example',
       ),
       servers: [
         config.localServer,
@@ -29,7 +29,7 @@ class OpenApiConfiguration {
   SwaggerUI swaggerUI(OpenApi openApi) {
     return SwaggerUI(
       jsonEncode(openApi.toJson()),
-      title: 'myvaden API',
+      title: 'Dllama API Documentation',
       docExpansion: DocExpansion.list,
       deepLink: true,
       persistAuthorization: false,
