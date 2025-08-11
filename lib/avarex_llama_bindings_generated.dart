@@ -9,7 +9,6 @@
 import 'dart:ffi' as ffi;
 
 /// Bindings for `src/avarex_llama.h`.
-///
 /// Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
 ///
 class AvarexLlamaBindings {
