@@ -10,7 +10,8 @@ Future<void> main(List<String> args) async {
   });  
   final vaden = VadenApp();
   await vaden.setup();
+  log.info("Starting Vaden server...");
   final server = await vaden.run(args);
-  log.info('Server listening on port ${server.port}');
+  log.info('Server listening at port ${server.port} (go to /docs path for Swagger/OpenAPI UI to test it out)');
 }
 
