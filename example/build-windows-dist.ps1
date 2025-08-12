@@ -3,6 +3,7 @@ New-Item -ItemType Directory -Force -Path dist-windows
 # Force build of plugin DLL and dependent (e.g., llama.cpp) DLL's, and copy them to dist directory
 flutter build windows --release
 Get-ChildItem -Path ".\build\windows\x64\runner\Release\*.dll" | Copy-Item -Destination ".\dist-windows\"
+Get-ChildItem -Path ".\dist-windows\flutter*.dll" | Remove-Item # Delete flutter runtime DLL, as it is huge and not needed (this is pure compiled Dart CLI)
 # AOT compile the API server app, bundled with the Dart runtime
 dart compile exe bin\server.dart -o dist-windows\server.exe
 # Copy the config file to the dist directory
