@@ -1,4 +1,4 @@
-import 'package:avarex_llama/llama_engine.dart' as dllama;
+import 'package:dllama/llama_engine.dart' as dllama;
 import 'dart:io' as io;
 
 

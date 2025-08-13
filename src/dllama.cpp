@@ -1,13 +1,20 @@
-#include "avarex_llama.h"
-
 #include "stdio.h"
 #include <string>
 #include <vector>
 #include <stdlib.h>
 #include <cstring>
+#include <atomic>
+#include <mutex>
 
-struct llama_model* model = NULL;
-const struct llama_vocab* vocab = NULL;
+#include "dllama.h"
+
+
+static struct llama_model* model = NULL;
+static const struct llama_vocab* vocab = NULL;
+
+std::atomic<bool> ok_to_generate;
+std::mutex state_change_mutex;
+
 
 FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params model_params) {
     // start model backend
@@ -16,6 +23,13 @@ FFI_PLUGIN_EXPORT void start_llama(char* path_model, struct llama_model_params m
     model = llama_model_load_from_file(path_model, model_params);
     // initialize vocabulary
     vocab = llama_model_get_vocab(model);
+    ok_to_generate.store(true);
+}
+
+FFI_PLUGIN_EXPORT void stop_llama(char* path_model, struct llama_model_params model_params) {
+    ok_to_generate.store(false);
+    state_change_mutex.lock();
+    llama_model_free(model);
 }
 
 FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llama_context_params context_params, struct llama_sampler_chain_params sampler_params) {
@@ -52,7 +66,8 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
     const auto t_main_start = ggml_time_us();
     int n_decode = 0;
     llama_token new_token_id;
-    for (int n_pos = 0; n_pos + batch.n_tokens < n_prompt + n_predict; ) {
+    state_change_mutex.lock();
+    for (int n_pos = 0; n_pos + batch.n_tokens < n_prompt + n_predict && ok_to_generate.load(); ) {
         // evaluate the current batch with the transformer model
         if (llama_decode(ctx, batch)) {
             fprintf(stderr, "%s : failed to eval, return code %d\n", __func__, 1);
@@ -78,8 +93,6 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
             }
             std::string s(buf, n);
             generation += s;
-            // printf("%s", s.c_str());
-            // fflush(stdout);
 
             // prepare the next batch with the sampled token
             batch = llama_batch_get_one(&new_token_id, 1);
@@ -87,6 +100,7 @@ FFI_PLUGIN_EXPORT char* run_generation(char* promptc, int n_predict, struct llam
             n_decode += 1;
         }
     }
+    state_change_mutex.unlock();
     printf("\n");
     const auto t_main_end = ggml_time_us();    
     

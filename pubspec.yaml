@@ -1,5 +1,5 @@
-name: avarex_llama
-description: "A new Flutter FFI plugin project."
+name: dllama
+description: "Dart Llama.cpp plugin."
 version: 0.0.1
 author: Shane Lenagh <shanelenagh@gmail.com>
 homepage: https://github.com/shanelenagh/avarex_llama

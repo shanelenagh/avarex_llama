@@ -1,15 +1,26 @@
 import 'dart:ffi' as ffi;
 // ignore: depend_on_referenced_packages (used as a string extension)
 import 'package:ffi/ffi.dart';
-import 'package:avarex_llama/avarex_llama_bindings_generated.dart' as avarex_llama;
 import 'package:logging/logging.dart';
+import 'dart:io';
+
+import 'package:dllama/dllama_bindings_generated.dart' as dllama;
 
 class LlamaEngine {
 
   final _log = Logger((LlamaEngine).toString());
-  final avarex_llama.AvarexLlamaBindings _llamacppLib = avarex_llama.AvarexLlamaBindings(ffi.DynamicLibrary.open("avarex_llama.dll"));
+  late final dllama.DllamaBindings _llamacppLib;
 
-  LlamaEngine(String modelPath, ModelConfig? modelConfig) {   
+  LlamaEngine(String modelPath, ModelConfig? modelConfig) {  
+    if (Platform.isWindows) {
+      _llamacppLib = dllama.DllamaBindings(ffi.DynamicLibrary.open("dllama.dll"));
+    } else if (Platform.isLinux || Platform.isAndroid) {
+      _llamacppLib = dllama.DllamaBindings(ffi.DynamicLibrary.open("dllama.so"));
+    } else if (Platform.isMacOS || Platform.isIOS) {
+      _llamacppLib = dllama.DllamaBindings(ffi.DynamicLibrary.open("dllama.framework/dllama"));
+    } else {
+      throw Exception('Dllama LlamaCPP Unsupported Platform');
+    }    
     _log.info("Starting llama.cpp with model $modelPath...");
     _llamacppLib.start_llama(_dart2ffi(modelPath), (modelConfig??ModelConfig())._getLlamaModelParams(_llamacppLib));
     _log.info("Started llama.cpp");
@@ -41,7 +52,7 @@ class ModelConfig {
   /// Force system to keep model in RAM
   bool? lockModelInRam;  
 
-  avarex_llama.llama_model_params _getLlamaModelParams(avarex_llama.AvarexLlamaBindings llamacppLib) {
+  dllama.llama_model_params _getLlamaModelParams(dllama.DllamaBindings llamacppLib) {
     var modelParams = llamacppLib.get_default_model_params();
     modelParams.n_gpu_layers = gpuLayers;
     modelParams.use_mmap = useMemoryMapping ?? modelParams.use_mmap;
@@ -64,7 +75,7 @@ class ContextConfig {
   /// Performance timings enabled
   bool? performanceTimings;
 
-  avarex_llama.llama_context_params _getLlamaContextParams(avarex_llama.AvarexLlamaBindings llamacppLib) {
+  dllama.llama_context_params _getLlamaContextParams(dllama.DllamaBindings llamacppLib) {
     var ctxParams = llamacppLib.get_default_context_params();
     ctxParams.n_ctx = maxTokenCount ?? ctxParams.n_ctx;
     ctxParams.n_ubatch = physicalMaxBatchSize ?? ctxParams.n_ubatch;
@@ -80,7 +91,7 @@ class SamplerConfig {
   /// Performance timings enabled
   bool? performanceTimings;
 
-  avarex_llama.llama_sampler_chain_params _getLlamaSamplerParams(avarex_llama.AvarexLlamaBindings llamacppLib) {
+  dllama.llama_sampler_chain_params _getLlamaSamplerParams(dllama.DllamaBindings llamacppLib) {
     var samplerParams = llamacppLib.get_default_sampler_params();
     samplerParams.no_perf = !(performanceTimings ?? !samplerParams.no_perf);
     return samplerParams;

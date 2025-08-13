@@ -3,7 +3,7 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
-set(PROJECT_NAME "avarex_llama")
+set(PROJECT_NAME "dllama")
 project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES CXX)
 
 set(LLAMA_CPP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp)
@@ -17,7 +17,7 @@ endif()
 add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_CURRENT_BINARY_DIR}/shared EXCLUDE_FROM_ALL)
 
 add_library(${PROJECT_NAME} SHARED
-  "avarex_llama.cpp"
+  ${PROJECT_NAME}.cpp
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC llama)
 target_include_directories(
@@ -27,8 +27,8 @@ target_include_directories(
   PRIVATE ${LLAMA_CPP_DIR}/ggml/include
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  PUBLIC_HEADER "avarex_llama.h"
-  OUTPUT_NAME "avarex_llama"
+  PUBLIC_HEADER ${PROJECT_NAME}.h
+  OUTPUT_NAME ${PROJECT_NAME}
 )
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC DART_SHARED_LIB)
@@ -46,8 +46,8 @@ endif()
 
 # Add test app, if requested
 if (DEFINED BUILD_TEST_EXE)
-  add_executable(llama_test avarex_llama.cpp)
-  target_link_libraries(llama_test PRIVATE llama ${PROJECT_NAME})
+  add_executable(${PROJECT_NAME}_test ${PROJECT_NAME}.cpp)
+  target_link_libraries(${PROJECT_NAME}_test PRIVATE llama ${PROJECT_NAME})
 endif()
 
 if (ANDROID)

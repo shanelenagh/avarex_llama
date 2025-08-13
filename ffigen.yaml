@@ -1,14 +1,14 @@
 # Run with `dart run ffigen --config ffigen.yaml`.
-name: AvarexLlamaBindings
+name: DllamaBindings
 description: |
-  Bindings for `src/avarex_llama.h`.
+  Bindings for `src/dllama.h`.
   Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
-output: 'lib/avarex_llama_bindings_generated.dart'
+output: 'lib/dllama_bindings_generated.dart'
 headers:
   entry-points:
-    - 'src/avarex_llama.h' 
+    - 'src/dllama.h' 
   include-directives:
-    - 'src/avarex_llama.h'
+    - 'src/dllama.h'
 compiler-opts:
   - '-Isrc/llama_cpp/include'
   - '-Isrc/llama_cpp/ggml/include'

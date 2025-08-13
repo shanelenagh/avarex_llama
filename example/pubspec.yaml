@@ -1,5 +1,5 @@
-name: avarex_llama_example
-description: "Demonstrates how to use the avarex_llama plugin."
+name: dllama_example
+description: "Demonstrates how to use the dllama plugin."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,9 +34,9 @@ dependencies:
   logging: any
   vaden: ^0.1.1
 
-  avarex_llama:
+  dllama:
     # When depending on this package from a real application you should use:
-    #   avarex_llama: ^x.y.z
+    #   dllama: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints
     # The example app is bundled with the plugin so we use a path dependency on
     # the parent directory to use the current plugin's version.
