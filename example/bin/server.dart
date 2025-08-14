@@ -1,4 +1,4 @@
-import 'package:avarex_llama_example/vaden_application.dart';
+import 'package:dllama_example/vaden_application.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger("avarex_llama_example:server");
