@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // Aggregated Vaden application file
 // ignore_for_file: prefer_function_declarations_over_variables, implementation_imports
-import 'package:avarex_llama_example/config/app_configuration.dart';
-import 'package:avarex_llama_example/config/app_controller_advice.dart';
-import 'package:avarex_llama_example/config/openapi/openapi_configuration.dart';
-import 'package:avarex_llama_example/config/openapi/openapi_controller.dart';
-import 'package:avarex_llama_example/config/resources/resource_configuration.dart';
-import 'package:avarex_llama_example/src/llama_controller.dart';
+import 'package:dllama_example/config/app_configuration.dart';
+import 'package:dllama_example/config/app_controller_advice.dart';
+import 'package:dllama_example/config/openapi/openapi_configuration.dart';
+import 'package:dllama_example/config/openapi/openapi_controller.dart';
+import 'package:dllama_example/config/resources/resource_configuration.dart';
+import 'package:dllama_example/src/llama_controller.dart';
 
 import 'dart:convert';
 import 'dart:io';
@@ -129,6 +129,13 @@ class VadenApp implements DartVadenApplication {
       'schema': {'type': 'string'},
     });
 
+    paths['/llama/ask']['get']['parameters']?.add({
+      'name': 'maxTokens',
+      'in': 'query',
+      'required': false,
+      'schema': {'type': 'string'},
+    });
+
     final handlerLlamaControllerask = (Request request) async {
       if (request.url.queryParameters['question'] == null) {
         return Response(
@@ -140,8 +147,9 @@ class VadenApp implements DartVadenApplication {
         request.url.queryParameters['question'],
       )!;
 
+      final maxTokens = _parse<int>(request.url.queryParameters['maxTokens']);
       final ctrl = _injector.get<LlamaController>();
-      final result = ctrl.ask(question);
+      final result = ctrl.ask(question, maxTokens);
       return Response.ok(result, headers: {'Content-Type': 'text/plain'});
     };
     routerLlamaController.get(
