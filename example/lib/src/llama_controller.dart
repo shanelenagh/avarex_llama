@@ -20,10 +20,8 @@ class LlamaController {
   @Get('/ask')
   @ApiOperation(summary: 'Ask the LLM a question', description: 'Send a question to the LLM and receive a response.')
   String ask(@Query() @ApiQuery(description: "Question to ask the LLM (i.e., prompt)") question,
-      @Query() @ApiQuery(description: "Maximum number of tokens to generate in the response") int? maxTokens) {
-        if (maxTokens == null) {
-          maxTokens = 100;
-        }
-    return _llama?.runGeneration(question, maxTokens, null, null) ?? "";
+      @Query() @ApiQuery(description: "Maximum number of tokens to generate in the response") int? maxTokens)
+  {
+    return _llama?.runGeneration(question, maxTokens ?? 100, null, null) ?? "";
   }
 }
