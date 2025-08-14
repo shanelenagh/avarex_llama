@@ -149,7 +149,7 @@ class VadenApp implements DartVadenApplication {
 
       final maxTokens = _parse<int>(request.url.queryParameters['maxTokens']);
       final ctrl = _injector.get<LlamaController>();
-      final result = ctrl.ask(question, maxTokens);
+      final result = await ctrl.ask(question, maxTokens);
       return Response.ok(result, headers: {'Content-Type': 'text/plain'});
     };
     routerLlamaController.get(
